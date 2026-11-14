@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#ff7a2f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Cat Escape: The Great Dog Chase</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+</head>
+<body>
+  <div id="app">
+    <div id="game-canvas-container" aria-label="3D Game Viewport"></div>
+
+    <!-- A. LOADING SCREEN -->
+    <section id="loading-screen" class="screen active" aria-label="Loading Screen">
+      <div class="loading-card">
+        <div class="cat-logo-bounce" aria-hidden="true">
+          <svg viewBox="0 0 120 120" class="cat-svg-logo">
+            <circle cx="60" cy="62" r="46" fill="#ff7a2f" />
+            <polygon points="26,48 30,14 50,36" fill="#ffffff" />
+            <polygon points="94,48 90,14 70,36" fill="#ffffff" />
+            <polygon points="31,42 33,22 45,35" fill="#ffb3c6" />
+            <polygon points="89,42 87,22 75,35" fill="#ffb3c6" />
+            <ellipse cx="60" cy="66" rx="34" ry="30" fill="#ffffff" />
+            <path d="M28,55 Q60,26 92,55 Q76,42 60,46 Q44,42 28,55 Z" fill="#f26c21" />
+            <circle cx="46" cy="62" r="6" fill="#1e2332" />
+            <circle cx="74" cy="62" r="6" fill="#1e2332" />
+            <circle cx="48" cy="60" r="2" fill="#ffffff" />
+            <circle cx="76" cy="60" r="2" fill="#ffffff" />
+            <polygon points="56,70 64,70 60,76" fill="#ff7696" />
+            <path d="M52,78 Q60,84 68,78" fill="none" stroke="#1e2332" stroke-width="2.5" stroke-linecap="round" />
+          </svg>
+        </div>
+        <h1 class="game-title">CAT ESCAPE</h1>
+        <p class="game-subtitle">THE GREAT DOG CHASE</p>
+        <div class="progress-track">
+          <div id="loading-progress-bar" class="progress-fill"></div>
+        </div>
+        <p id="loading-status" class="loading-status">Building city streets...</p>
+      </div>
+    </section>
+
+    <!-- B. MAIN MENU -->
+    <section id="main-menu" class="screen" aria-label="Main Menu">
+      <div class="menu-top-bar">
+        <div class="stat-pill" title="Best Score">
+          <span class="pill-icon">🏆</span>
+          <span id="menu-best-score">0</span>
+        </div>
+        <div class="stat-pill" title="Total Fish Coins">
+          <span class="pill-icon">🐟</span>
+          <span id="menu-total-fish">0</span>
+        </div>
+        <button id="menu-sound-btn" class="icon-btn" type="button" aria-label="Toggle Sound">🔊</button>
+      </div>
+
+      <div class="menu-header">
+        <h1 class="menu-title">CAT ESCAPE</h1>
+        <p class="menu-tagline">The Great Dog Chase</p>
+      </div>
+
+      <div class="menu-bottom-panel">
+        <button id="play-btn" class="primary-cta" type="button">PLAY</button>
+
+        <div class="menu-secondary-row">
+          <button id="cats-btn" class="secondary-btn" type="button">🐱 Cats</button>
+          <button id="missions-btn" class="secondary-btn" type="button">🎯 Missions</button>
+          <button id="settings-btn" class="secondary-btn" type="button">⚙ Settings</button>
+        </div>
+        <div class="menu-secondary-row two-col">
+          <button id="instructions-btn" class="secondary-btn" type="button">How to Play</button>
+          <button id="install-btn" class="secondary-btn" type="button">Install App</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTRO STORYLINE CUTSCENE -->
+    <section id="intro-overlay" class="screen intro-layer" aria-label="Story Intro">
+      <div id="intro-bubble" class="intro-bubble">Sneaking up on the golden fish...</div>
+      <button id="skip-intro-btn" class="secondary-btn skip-intro-btn" type="button">SKIP ⏭</button>
+    </section>
+
+    <!-- C. GAMEPLAY HUD -->
+    <section id="gameplay-hud" class="screen hud-layer" aria-label="Gameplay HUD">
+      <div class="hud-top">
+        <div class="hud-left">
+          <div class="hud-score-box">
+            <span class="hud-label">SCORE</span>
+            <span id="hud-score" class="hud-value">0</span>
+          </div>
+          <div class="hud-sub-stats">
+            <span id="hud-distance">0m</span>
+            <span class="dot-sep">•</span>
+            <span id="hud-speed">1.0x</span>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="hud-fish-box">
+            <span>🐟</span>
+            <span id="hud-fish">0</span>
+          </div>
+          <button id="pause-btn" class="icon-btn hud-pause-btn" type="button" aria-label="Pause Game">⏸</button>
+        </div>
+      </div>
+
+      <div id="hud-powerups" class="hud-powerups" aria-live="polite"></div>
+
+      <div id="dog-danger-banner" class="dog-danger-banner" aria-live="polite">
+        🐕 Bulldog is right behind you!
+      </div>
+
+      <!-- Optional Accessibility On-Screen Controls -->
+      <div id="touch-dpad" class="touch-dpad hidden" aria-label="On-screen controls">
+        <button id="btn-left" class="dpad-btn" type="button" aria-label="Move Left">◀</button>
+        <div class="dpad-vertical">
+          <button id="btn-jump" class="dpad-btn" type="button" aria-label="Jump">▲</button>
+          <button id="btn-slide" class="dpad-btn" type="button" aria-label="Slide">▼</button>
+        </div>
+        <button id="btn-right" class="dpad-btn" type="button" aria-label="Move Right">▶</button>
+      </div>
+    </section>
+
+    <!-- D. PAUSE SCREEN -->
+    <section id="pause-screen" class="screen modal-overlay" aria-label="Pause Menu">
+      <div class="modal-card">
+        <h2>PAUSED</h2>
+        <div class="modal-actions">
+          <button id="resume-btn" class="primary-cta" type="button">RESUME</button>
+          <button id="pause-restart-btn" class="secondary-btn full-width" type="button">Restart Run</button>
+          <button id="pause-menu-btn" class="secondary-btn full-width" type="button">Main Menu</button>
+        </div>
+        <div class="settings-compact">
+          <label class="toggle-row">
+            <span>SFX Volume</span>
+            <input id="pause-sfx-slider" type="range" min="0" max="1" step="0.05" value="0.8" />
+          </label>
+          <label class="toggle-row">
+            <span>Music Volume</span>
+            <input id="pause-music-slider" type="range" min="0" max="1" step="0.05" value="0.45" />
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- E. GAME OVER SCREEN -->
+    <section id="gameover-screen" class="screen modal-overlay" aria-label="Game Over Screen">
+      <div class="modal-card gameover-card">
+        <div id="new-record-badge" class="record-badge hidden">NEW BEST SCORE!</div>
+        <h2>CAUGHT BY THE BULLDOG!</h2>
+
+        <div class="gameover-stats">
+          <div class="go-stat">
+            <span class="go-label">SCORE</span>
+            <span id="go-score" class="go-value">0</span>
+          </div>
+          <div class="go-stat">
+            <span class="go-label">BEST</span>
+            <span id="go-best" class="go-value">0</span>
+          </div>
+          <div class="go-stat">
+            <span class="go-label">FISH</span>
+            <span id="go-fish" class="go-value">0</span>
+          </div>
+          <div class="go-stat">
+            <span class="go-label">DISTANCE</span>
+            <span id="go-distance" class="go-value">0m</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="retry-btn" class="primary-cta" type="button">PLAY AGAIN</button>
+          <button id="go-menu-btn" class="secondary-btn full-width" type="button">Main Menu</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAT SKINS MODAL -->
+    <section id="cats-modal" class="screen modal-overlay" aria-label="Cat Skins">
+      <div class="modal-card">
+        <h2>CHOOSE YOUR CAT</h2>
+        <div id="skins-list" class="skins-list"></div>
+        <button id="close-cats-btn" class="primary-cta" type="button">DONE</button>
+      </div>
+    </section>
+
+    <!-- MISSIONS MODAL -->
+    <section id="missions-modal" class="screen modal-overlay" aria-label="Daily Missions">
+      <div class="modal-card">
+        <h2>MISSIONS</h2>
+        <div id="missions-list" class="skins-list"></div>
+        <button id="close-missions-btn" class="primary-cta" type="button">CLOSE</button>
+      </div>
+    </section>
+    <!-- INSTRUCTIONS MODAL -->
+    <section id="instructions-modal" class="screen modal-overlay" aria-label="How to Play">
+      <div class="modal-card">
+        <h2>HOW TO PLAY</h2>
+        <ul class="instructions-list">
+          <li><strong>Mobile:</strong> Swipe Left/Right to switch lanes, Swipe Up to jump, Swipe Down to slide.</li>
+          <li><strong>Desktop:</strong> Arrow Keys or A/D to switch lanes, Space/Up to jump, Down to slide, Enter to restart.</li>
+          <li><strong>Power-Ups:</strong> Magnet pulls fish, Shield blocks 1 crash, 2x Fish doubles coins, Speed Boost blasts ahead!</li>
+          <li><strong>Watch Out:</strong> Stumbling lets the angry bulldog catch up!</li>
+        </ul>
+        <button id="close-instructions-btn" class="primary-cta" type="button">GOT IT</button>
+      </div>
+    </section>
+
+    <!-- SETTINGS MODAL -->
+    <section id="settings-modal" class="screen modal-overlay" aria-label="Settings">
+      <div class="modal-card">
+        <h2>SETTINGS</h2>
+        <div class="settings-compact">
+          <label class="toggle-row">
+            <span>Graphics Quality</span>
+            <select id="graphics-select">
+              <option value="low">Low (Battery / 30+ FPS)</option>
+              <option value="medium" selected>Medium (Balanced)</option>
+              <option value="high">High (Crisp + Shadows)</option>
+            </select>
+          </label>
+          <label class="toggle-row">
+            <span>On-Screen Buttons</span>
+            <input id="dpad-toggle" type="checkbox" />
+          </label>
+          <label class="toggle-row">
+            <span>SFX Volume</span>
+            <input id="menu-sfx-slider" type="range" min="0" max="1" step="0.05" value="0.8" />
+          </label>
+          <label class="toggle-row">
+            <span>Music Volume</span>
+            <input id="menu-music-slider" type="range" min="0" max="1" step="0.05" value="0.45" />
+          </label>
+        </div>
+        <button id="close-settings-btn" class="primary-cta" type="button">DONE</button>
+      </div>
+    </section>
+
+    <!-- INSTALL PWA MODAL -->
+    <section id="install-modal" class="screen modal-overlay" aria-label="Install App">
+      <div class="modal-card">
+        <h2>INSTALL ON ANDROID</h2>
+        <ul class="instructions-list">
+          <li>Open this game in <strong>Google Chrome</strong> on your Android phone.</li>
+          <li>Tap the <strong>⋮</strong> menu in the top-right corner of Chrome.</li>
+          <li>Tap <strong>Install app</strong> or <strong>Add to Home screen</strong>.</li>
+          <li>Launch <strong>Cat Escape</strong> from your home screen — works offline too!</li>
+        </ul>
+        <button id="pwa-install-trigger" class="primary-cta hidden" type="button">INSTALL NOW</button>
+        <button id="close-install-btn" class="secondary-btn full-width" type="button">CLOSE</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
